@@ -8,10 +8,8 @@ local localPlayer = Players.LocalPlayer
 local aimbotEnabled = false
 local highlightEnabled = false
 local noclipEnabled = false
-local flyEnabled = false
 local aimSmoothness = 0 -- Default to 0 for instant lock-on
 local speed = 20 -- Default walking speed
-local flySpeed = 1 -- Default flying speed
 local aimbotTarget = nil
 
 -- Create ScreenGui
@@ -73,26 +71,6 @@ noclipButton.Size = UDim2.new(0, 180, 0, 50)
 noclipButton.Position = UDim2.new(0, 10, 0, 230)
 noclipButton.Text = "Enable Noclip"
 noclipButton.Parent = frame
-
--- Create Fly Button
-local flyButton = Instance.new("TextButton")
-flyButton.Size = UDim2.new(0, 180, 0, 50)
-flyButton.Position = UDim2.new(0, 10, 0, 290)
-flyButton.Text = "Enable Fly"
-flyButton.Parent = frame
-
--- Create Fly Speed Slider
-local flySpeedLabel = Instance.new("TextLabel")
-flySpeedLabel.Size = UDim2.new(0, 180, 0, 20)
-flySpeedLabel.Position = UDim2.new(0, 10, 0, 350)
-flySpeedLabel.Text = "Fly Speed: 1"
-flySpeedLabel.Parent = frame
-
-local flySpeedSlider = Instance.new("TextButton")
-flySpeedSlider.Size = UDim2.new(0, 180, 0, 20)
-flySpeedSlider.Position = UDim2.new(0, 10, 0, 370)
-flySpeedSlider.Text = "Adjust Fly Speed"
-flySpeedSlider.Parent = frame
 
 -- Highlight Functionality
 local function highlightPlayers()
@@ -173,7 +151,9 @@ end)
 -- Speed Slider Functionality
 local function setWalkSpeed(newSpeed)
     speed = newSpeed
-    localPlayer.Character.Humanoid.WalkSpeed = speed
+    if localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") then
+        localPlayer.Character.Humanoid.WalkSpeed = speed
+    end
 end
 
 speedSlider.MouseButton1Click:Connect(function()
@@ -202,58 +182,12 @@ noclipButton.MouseButton1Click:Connect(function()
     noclipButton.Text = noclipEnabled and "Disable Noclip" or "Enable Noclip"
 end)
 
--- Fly Functionality
-local function fly()
-    local bodyVelocity = Instance.new("BodyVelocity")
-    bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-    bodyVelocity.Parent = localPlayer.Character.HumanoidRootPart
-
-    local flying = false
-
-    UserInputService.InputBegan:Connect(function(input)
-        if input.KeyCode == Enum.KeyCode.W then
-            flying = true
-        elseif input.KeyCode == Enum.KeyCode.Space then
-            bodyVelocity.Velocity = Vector3.new(0, flySpeed, 0) -- Go up when pressing Space
-        elseif input.KeyCode == Enum.KeyCode.LeftControl then
-            bodyVelocity.Velocity = Vector3.new(0, -flySpeed, 0) -- Go down when pressing Ctrl
-        end
-    end)
-
-    UserInputService.InputEnded:Connect(function(input)
-        if input.KeyCode == Enum.KeyCode.W then
-            flying = false
-            bodyVelocity.Velocity = Vector3.new(0, 0, 0) -- Stop moving forward
-        elseif input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.LeftControl then
-            bodyVelocity.Velocity = Vector3.new(0, 0, 0) -- Stop vertical movement
-        end
-    end)
-
-    RunService.RenderStepped:Connect(function()
-        if flying then
-            bodyVelocity.Velocity = localPlayer.Character.HumanoidRootPart.CFrame.LookVector * flySpeed -- Move in the direction the player is looking
-        else
-            bodyVelocity.Velocity = Vector3.new(0, 0, 0) -- Stop moving when not flying
-        end
-    end)
-end
-
-flyButton.MouseButton1Click:Connect(function()
-    flyEnabled = not flyEnabled
-    flyButton.Text = flyEnabled and "Disable Fly" or "Enable Fly"
-    if flyEnabled then
-        fly()
-    end
+-- Keep GUI visible when respawning
+localPlayer.CharacterAdded:Connect(function()
+    frame.Visible = true
 end)
 
--- Fly Speed Slider Functionality
-flySpeedSlider.MouseButton1Click:Connect(function()
-    flySpeed = flySpeed + 1
-    if flySpeed > 50 then flySpeed = 1 end
-    flySpeedLabel.Text = "Fly Speed: " .. flySpeed
-end)
-
--- Initial GUI visibility
+-- Ensure GUI is visible initially
 frame.Visible = true
 
 -- Highlight all players at start
