@@ -171,11 +171,16 @@ smoothnessSlider.MouseButton1Click:Connect(function()
 end)
 
 -- Speed Slider Functionality
+local function setWalkSpeed(newSpeed)
+    speed = newSpeed
+    localPlayer.Character.Humanoid.WalkSpeed = speed
+end
+
 speedSlider.MouseButton1Click:Connect(function()
     speed = speed + 10
     if speed > 500 then speed = 20 end
     speedLabel.Text = "Speed: " .. speed
-    localPlayer.Character.Humanoid.WalkSpeed = speed
+    setWalkSpeed(speed) -- Set the walk speed immediately
 end)
 
 -- Noclip Functionality
@@ -200,14 +205,35 @@ end)
 -- Fly Functionality
 local function fly()
     local bodyVelocity = Instance.new("BodyVelocity")
-    bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0) -- Allow vertical movement
+    bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
     bodyVelocity.Parent = localPlayer.Character.HumanoidRootPart
 
+    local flying = false
+
+    UserInputService.InputBegan:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.W then
+            flying = true
+        elseif input.KeyCode == Enum.KeyCode.Space then
+            bodyVelocity.Velocity = Vector3.new(0, flySpeed, 0) -- Go up when pressing Space
+        elseif input.KeyCode == Enum.KeyCode.LeftControl then
+            bodyVelocity.Velocity = Vector3.new(0, -flySpeed, 0) -- Go down when pressing Ctrl
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.W then
+            flying = false
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0) -- Stop moving forward
+        elseif input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.LeftControl then
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0) -- Stop vertical movement
+        end
+    end)
+
     RunService.RenderStepped:Connect(function()
-        if flyEnabled then
-            bodyVelocity.Velocity = localPlayer.Character.HumanoidRootPart.CFrame.LookVector * flySpeed + Vector3.new(0, flySpeed * 50, 0) -- Fly upwards
+        if flying then
+            bodyVelocity.Velocity = localPlayer.Character.HumanoidRootPart.CFrame.LookVector * flySpeed -- Move in the direction the player is looking
         else
-            bodyVelocity:Destroy()
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0) -- Stop moving when not flying
         end
     end)
 end
