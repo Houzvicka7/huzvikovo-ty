@@ -13,7 +13,6 @@ local aimSmoothness = 0 -- Default to 0 for instant lock-on
 local speed = 20 -- Default walking speed
 local flySpeed = 1 -- Default flying speed
 local aimbotTarget = nil
-local guiVisible = true
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
@@ -94,9 +93,6 @@ flySpeedSlider.Size = UDim2.new(0, 180, 0, 20)
 flySpeedSlider.Position = UDim2.new(0, 10, 0, 370)
 flySpeedSlider.Text = "Adjust Fly Speed"
 flySpeedSlider.Parent = frame
-
--- Initialize GUI visibility
-frame.Visible = guiVisible
 
 -- Highlight Functionality
 local function highlightPlayers()
@@ -231,11 +227,8 @@ flySpeedSlider.MouseButton1Click:Connect(function()
     flySpeedLabel.Text = "Fly Speed: " .. flySpeed
 end)
 
--- Toggle GUI visibility with 'M'
-UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.M then
-        guiVisible = not guiVisible
-        frame.Visible = guiVisible
-    end
-end)
+-- Initial GUI visibility
+frame.Visible = true
 
+-- Highlight all players at start
+highlightPlayers()
