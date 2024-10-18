@@ -65,7 +65,7 @@ noclipButton.Parent = frame
 local teleportButton = Instance.new("TextButton")
 teleportButton.Size = UDim2.new(0, 180, 0, 50)
 teleportButton.Position = UDim2.new(0, 10, 0, 190)
-teleportButton.Text = "Teleport to Target"
+teleportButton.Text = "Enable Teleport"
 teleportButton.Parent = frame
 
 -- Highlight Functionality
@@ -114,7 +114,10 @@ UserInputService.InputBegan:Connect(function(input)
     if aimbotEnabled and input.UserInputType == Enum.UserInputType.MouseButton1 then
         aimbotTarget = getClosestPlayer()
     elseif teleportEnabled and input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.F then
-        originalPosition = localPlayer.Character.HumanoidRootPart.Position -- Store original position
+        if originalPosition == nil then
+            originalPosition = localPlayer.Character.HumanoidRootPart.Position -- Store original position on first press
+        end
+
         local closestPlayer = getClosestPlayer()
         if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("HumanoidRootPart") then
             localPlayer.Character.HumanoidRootPart.Position = closestPlayer.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0) -- Teleport above the target
@@ -125,6 +128,11 @@ end)
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         aimbotTarget = nil
+    elseif input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.F then
+        if originalPosition then
+            localPlayer.Character.HumanoidRootPart.Position = originalPosition -- Teleport back to original position
+            originalPosition = nil -- Reset original position
+        end
     end
 end)
 
@@ -167,6 +175,13 @@ end)
 noclipButton.MouseButton1Click:Connect(function()
     noclipEnabled = not noclipEnabled
     noclipButton.Text = noclipEnabled and "Disable Noclip" or "Enable Noclip"
+end)
+
+-- Teleport Button Functionality
+teleportButton.MouseButton1Click:Connect(function()
+    teleportEnabled = not teleportEnabled
+    teleportButton.Text = teleportEnabled and "Disable Teleport" or "Enable Teleport"
+    originalPosition = nil -- Reset original position when toggling off
 end)
 
 -- Keep GUI visible when respawning
