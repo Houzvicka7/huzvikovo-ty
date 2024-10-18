@@ -95,6 +95,9 @@ flySpeedSlider.Position = UDim2.new(0, 10, 0, 370)
 flySpeedSlider.Text = "Adjust Fly Speed"
 flySpeedSlider.Parent = frame
 
+-- Initialize GUI visibility
+frame.Visible = guiVisible
+
 -- Highlight Functionality
 local function highlightPlayers()
     for _, player in pairs(Players:GetPlayers()) do
@@ -201,12 +204,13 @@ end)
 -- Fly Functionality
 local function fly()
     local bodyVelocity = Instance.new("BodyVelocity")
-    bodyVelocity.Velocity = Vector3.new(0, flySpeed * 50, 0)
-    bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
+    bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0) -- Allow vertical movement
     bodyVelocity.Parent = localPlayer.Character.HumanoidRootPart
 
-    RunService.Stepped:Connect(function()
-        if not flyEnabled then
+    RunService.RenderStepped:Connect(function()
+        if flyEnabled then
+            bodyVelocity.Velocity = localPlayer.Character.HumanoidRootPart.CFrame.LookVector * flySpeed + Vector3.new(0, flySpeed * 50, 0) -- Fly upwards
+        else
             bodyVelocity:Destroy()
         end
     end)
@@ -214,4 +218,24 @@ end
 
 flyButton.MouseButton1Click:Connect(function()
     flyEnabled = not flyEnabled
-    flyButton.Text = flyEnabled and "Disable Fly" or
+    flyButton.Text = flyEnabled and "Disable Fly" or "Enable Fly"
+    if flyEnabled then
+        fly()
+    end
+end)
+
+-- Fly Speed Slider Functionality
+flySpeedSlider.MouseButton1Click:Connect(function()
+    flySpeed = flySpeed + 1
+    if flySpeed > 50 then flySpeed = 1 end
+    flySpeedLabel.Text = "Fly Speed: " .. flySpeed
+end)
+
+-- Toggle GUI visibility with 'M'
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.M then
+        guiVisible = not guiVisible
+        frame.Visible = guiVisible
+    end
+end)
+
