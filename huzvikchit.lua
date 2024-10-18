@@ -14,6 +14,8 @@ local originalPosition = nil -- Store original position for teleporting back
 local teleportEnabled = false -- Teleport functionality variable
 local teleportInterval = 0.01 -- Teleport every 0.01 seconds
 local teleportConnection -- To hold the connection for teleporting
+local flyEnabled = false -- Fly functionality variable
+local flySpeed = 50 -- Default fly speed
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
@@ -69,6 +71,13 @@ teleportButton.Size = UDim2.new(0, 180, 0, 50)
 teleportButton.Position = UDim2.new(0, 10, 0, 190)
 teleportButton.Text = "Enable Teleport"
 teleportButton.Parent = frame
+
+-- Create Fly Button
+local flyButton = Instance.new("TextButton")
+flyButton.Size = UDim2.new(0, 180, 0, 50)
+flyButton.Position = UDim2.new(0, 10, 0, 290)
+flyButton.Text = "Enable Fly"
+flyButton.Parent = frame
 
 -- Highlight Functionality
 local function highlightPlayers()
@@ -152,6 +161,34 @@ RunService.RenderStepped:Connect(function()
         local targetCFrame = CFrame.new(currentCamera.CFrame.Position, currentCamera.CFrame.Position + direction)
         currentCamera.CFrame = currentCamera.CFrame:Lerp(targetCFrame, 1 - aimSmoothness)
     end
+
+    -- Fly functionality
+    if flyEnabled and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local character = localPlayer.Character
+        local humanoidRootPart = character.HumanoidRootPart
+        local moveDirection = Vector3.new(0, 0, 0)
+
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveDirection = moveDirection + (humanoidRootPart.CFrame.LookVector * flySpeed)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveDirection = moveDirection - (humanoidRootPart.CFrame.RightVector * flySpeed)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveDirection = moveDirection - (humanoidRootPart.CFrame.LookVector * flySpeed)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveDirection = moveDirection + (humanoidRootPart.CFrame.RightVector * flySpeed)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            humanoidRootPart.Position = humanoidRootPart.Position + Vector3.new(0, flySpeed / 10, 0) -- Ascend
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.C) then
+            humanoidRootPart.Position = humanoidRootPart.Position - Vector3.new(0, flySpeed / 10, 0) -- Descend
+        end
+
+        humanoidRootPart.Position = humanoidRootPart.Position + moveDirection * (RunService.RenderStepped:Wait())
+    end
 end)
 
 aimbotButton.MouseButton1Click:Connect(function()
@@ -189,6 +226,12 @@ teleportButton.MouseButton1Click:Connect(function()
     teleportEnabled = not teleportEnabled
     teleportButton.Text = teleportEnabled and "Disable Teleport" or "Enable Teleport"
     originalPosition = nil -- Reset original position when toggling off
+end)
+
+-- Fly Button Functionality
+flyButton.MouseButton1Click:Connect(function()
+    flyEnabled = not flyEnabled
+    flyButton.Text = flyEnabled and "Disable Fly" or "Enable Fly"
 end)
 
 -- Keep GUI visible when respawning
