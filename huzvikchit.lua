@@ -14,6 +14,7 @@ local aimbotTarget = nil
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CustomGui"
 screenGui.Parent = localPlayer.PlayerGui
 
 -- Create Frame for the GUI
