@@ -9,8 +9,8 @@ local aimbotEnabled = false
 local highlightEnabled = false
 local noclipEnabled = false
 local aimSmoothness = 0 -- Default to 0 for instant lock-on
-local speed = 20 -- Default walking speed
 local aimbotTarget = nil
+local teleportEnabled = false -- Teleport functionality variable
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
@@ -53,25 +53,19 @@ smoothnessSlider.Position = UDim2.new(0, 10, 0, 150)
 smoothnessSlider.Text = "Adjust Smoothness"
 smoothnessSlider.Parent = frame
 
--- Create Speed Slider
-local speedLabel = Instance.new("TextLabel")
-speedLabel.Size = UDim2.new(0, 180, 0, 20)
-speedLabel.Position = UDim2.new(0, 10, 0, 180)
-speedLabel.Text = "Speed: 20"
-speedLabel.Parent = frame
-
-local speedSlider = Instance.new("TextButton")
-speedSlider.Size = UDim2.new(0, 180, 0, 20)
-speedSlider.Position = UDim2.new(0, 10, 0, 200)
-speedSlider.Text = "Adjust Speed"
-speedSlider.Parent = frame
-
 -- Create Noclip Button
 local noclipButton = Instance.new("TextButton")
 noclipButton.Size = UDim2.new(0, 180, 0, 50)
 noclipButton.Position = UDim2.new(0, 10, 0, 230)
 noclipButton.Text = "Enable Noclip"
 noclipButton.Parent = frame
+
+-- Teleport Button
+local teleportButton = Instance.new("TextButton")
+teleportButton.Size = UDim2.new(0, 180, 0, 50)
+teleportButton.Position = UDim2.new(0, 10, 0, 190)
+teleportButton.Text = "Enable Teleport"
+teleportButton.Parent = frame
 
 -- Highlight Functionality
 local function highlightPlayers()
@@ -118,6 +112,11 @@ end
 UserInputService.InputBegan:Connect(function(input)
     if aimbotEnabled and input.UserInputType == Enum.UserInputType.MouseButton1 then
         aimbotTarget = getClosestPlayer()
+    elseif teleportEnabled and input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.LeftAlt then
+        local closestPlayer = getClosestPlayer()
+        if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            localPlayer.Character.HumanoidRootPart.Position = closestPlayer.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0) -- Teleport above the target
+        end
     end
 end)
 
@@ -149,21 +148,6 @@ smoothnessSlider.MouseButton1Click:Connect(function()
     smoothnessLabel.Text = "Aimbot Smoothness: " .. math.floor(aimSmoothness * 100)
 end)
 
--- Speed Slider Functionality
-local function setWalkSpeed(newSpeed)
-    speed = newSpeed
-    if localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") then
-        localPlayer.Character.Humanoid.WalkSpeed = speed
-    end
-end
-
-speedSlider.MouseButton1Click:Connect(function()
-    speed = speed + 10
-    if speed > 500 then speed = 20 end
-    speedLabel.Text = "Speed: " .. speed
-    setWalkSpeed(speed) -- Set the walk speed immediately
-end)
-
 -- Noclip Functionality
 RunService.Stepped:Connect(function()
     if noclipEnabled then
@@ -181,6 +165,12 @@ end)
 noclipButton.MouseButton1Click:Connect(function()
     noclipEnabled = not noclipEnabled
     noclipButton.Text = noclipEnabled and "Disable Noclip" or "Enable Noclip"
+end)
+
+-- Teleport Button Functionality
+teleportButton.MouseButton1Click:Connect(function()
+    teleportEnabled = not teleportEnabled
+    teleportButton.Text = teleportEnabled and "Disable Teleport" or "Enable Teleport"
 end)
 
 -- Keep GUI visible when respawning
