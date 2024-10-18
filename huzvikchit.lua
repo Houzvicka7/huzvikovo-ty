@@ -10,6 +10,9 @@ local highlightEnabled = false
 local noclipEnabled = false
 local aimSmoothness = 0 -- Default to 0 for instant lock-on
 local aimbotTarget = nil
+local guiVisible = true
+local dragging = false
+local dragStart, startPos
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
@@ -21,6 +24,8 @@ frame.Size = UDim2.new(0, 200, 0, 300)
 frame.Position = UDim2.new(0.5, -100, 0.5, -150)
 frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 frame.Parent = screenGui
+frame.Active = true
+frame.Draggable = true -- Makes the frame draggable
 
 -- Create Highlight Button
 local highlightButton = Instance.new("TextButton")
@@ -104,6 +109,12 @@ UserInputService.InputBegan:Connect(function(input)
     end
 end)
 
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        aimbotTarget = nil
+    end
+end)
+
 RunService.RenderStepped:Connect(function()
     if aimbotEnabled and aimbotTarget and aimbotTarget.Character and aimbotTarget.Character:FindFirstChild("Head") then
         local headPosition = aimbotTarget.Character.Head.Position
@@ -143,4 +154,12 @@ end)
 noclipButton.MouseButton1Click:Connect(function()
     noclipEnabled = not noclipEnabled
     noclipButton.Text = noclipEnabled and "Disable Noclip" or "Enable Noclip"
+end)
+
+-- Toggle GUI Visibility with Right Shift
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        guiVisible = not guiVisible
+        frame.Visible = guiVisible
+    end
 end)
