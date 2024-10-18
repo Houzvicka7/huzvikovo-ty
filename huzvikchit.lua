@@ -12,7 +12,6 @@ local aimSmoothness = 0 -- Default to 0 for instant lock-on
 local aimbotTarget = nil
 local originalPosition = nil -- Store original position for teleporting back
 local teleportEnabled = false -- Teleport functionality variable
-local teleportInterval = 0.01 -- Teleport every 0.01 seconds
 local teleportConnection -- To hold the connection for teleporting
 
 -- Create ScreenGui
@@ -22,8 +21,8 @@ screenGui.Parent = localPlayer.PlayerGui
 
 -- Create Frame for the GUI
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 400)
-frame.Position = UDim2.new(0.5, -100, 0.5, -200)
+frame.Size = UDim2.new(0, 200, 0, 300) -- Adjusted height for no fly button
+frame.Position = UDim2.new(0.5, -100, 0.5, -150)
 frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 frame.Parent = screenGui
 frame.Active = true
@@ -55,13 +54,6 @@ smoothnessSlider.Size = UDim2.new(0, 180, 0, 20)
 smoothnessSlider.Position = UDim2.new(0, 10, 0, 150)
 smoothnessSlider.Text = "Adjust Smoothness"
 smoothnessSlider.Parent = frame
-
--- Create Noclip Button
-local noclipButton = Instance.new("TextButton")
-noclipButton.Size = UDim2.new(0, 180, 0, 50)
-noclipButton.Position = UDim2.new(0, 10, 0, 230)
-noclipButton.Text = "Enable Noclip"
-noclipButton.Parent = frame
 
 -- Teleport Button
 local teleportButton = Instance.new("TextButton")
@@ -178,6 +170,13 @@ RunService.Stepped:Connect(function()
         end
     end
 end)
+
+-- Toggle Noclip Button
+local noclipButton = Instance.new("TextButton")
+noclipButton.Size = UDim2.new(0, 180, 0, 50)
+noclipButton.Position = UDim2.new(0, 10, 0, 240)
+noclipButton.Text = "Enable Noclip"
+noclipButton.Parent = frame
 
 noclipButton.MouseButton1Click:Connect(function()
     noclipEnabled = not noclipEnabled
