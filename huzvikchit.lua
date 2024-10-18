@@ -8,11 +8,12 @@ local localPlayer = Players.LocalPlayer
 local aimbotEnabled = false
 local highlightEnabled = false
 local noclipEnabled = false
+local flyEnabled = false
 local aimSmoothness = 0 -- Default to 0 for instant lock-on
+local speed = 20 -- Default walking speed
+local flySpeed = 1 -- Default flying speed
 local aimbotTarget = nil
 local guiVisible = true
-local dragging = false
-local dragStart, startPos
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
@@ -20,8 +21,8 @@ screenGui.Parent = localPlayer.PlayerGui
 
 -- Create Frame for the GUI
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 300)
-frame.Position = UDim2.new(0.5, -100, 0.5, -150)
+frame.Size = UDim2.new(0, 200, 0, 400)
+frame.Position = UDim2.new(0.5, -100, 0.5, -200)
 frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 frame.Parent = screenGui
 frame.Active = true
@@ -54,12 +55,45 @@ smoothnessSlider.Position = UDim2.new(0, 10, 0, 150)
 smoothnessSlider.Text = "Adjust Smoothness"
 smoothnessSlider.Parent = frame
 
+-- Create Speed Slider
+local speedLabel = Instance.new("TextLabel")
+speedLabel.Size = UDim2.new(0, 180, 0, 20)
+speedLabel.Position = UDim2.new(0, 10, 0, 180)
+speedLabel.Text = "Speed: 20"
+speedLabel.Parent = frame
+
+local speedSlider = Instance.new("TextButton")
+speedSlider.Size = UDim2.new(0, 180, 0, 20)
+speedSlider.Position = UDim2.new(0, 10, 0, 200)
+speedSlider.Text = "Adjust Speed"
+speedSlider.Parent = frame
+
 -- Create Noclip Button
 local noclipButton = Instance.new("TextButton")
 noclipButton.Size = UDim2.new(0, 180, 0, 50)
-noclipButton.Position = UDim2.new(0, 10, 0, 180)
+noclipButton.Position = UDim2.new(0, 10, 0, 230)
 noclipButton.Text = "Enable Noclip"
 noclipButton.Parent = frame
+
+-- Create Fly Button
+local flyButton = Instance.new("TextButton")
+flyButton.Size = UDim2.new(0, 180, 0, 50)
+flyButton.Position = UDim2.new(0, 10, 0, 290)
+flyButton.Text = "Enable Fly"
+flyButton.Parent = frame
+
+-- Create Fly Speed Slider
+local flySpeedLabel = Instance.new("TextLabel")
+flySpeedLabel.Size = UDim2.new(0, 180, 0, 20)
+flySpeedLabel.Position = UDim2.new(0, 10, 0, 350)
+flySpeedLabel.Text = "Fly Speed: 1"
+flySpeedLabel.Parent = frame
+
+local flySpeedSlider = Instance.new("TextButton")
+flySpeedSlider.Size = UDim2.new(0, 180, 0, 20)
+flySpeedSlider.Position = UDim2.new(0, 10, 0, 370)
+flySpeedSlider.Text = "Adjust Fly Speed"
+flySpeedSlider.Parent = frame
 
 -- Highlight Functionality
 local function highlightPlayers()
@@ -137,6 +171,14 @@ smoothnessSlider.MouseButton1Click:Connect(function()
     smoothnessLabel.Text = "Aimbot Smoothness: " .. math.floor(aimSmoothness * 100)
 end)
 
+-- Speed Slider Functionality
+speedSlider.MouseButton1Click:Connect(function()
+    speed = speed + 10
+    if speed > 500 then speed = 20 end
+    speedLabel.Text = "Speed: " .. speed
+    localPlayer.Character.Humanoid.WalkSpeed = speed
+end)
+
 -- Noclip Functionality
 RunService.Stepped:Connect(function()
     if noclipEnabled then
@@ -156,10 +198,20 @@ noclipButton.MouseButton1Click:Connect(function()
     noclipButton.Text = noclipEnabled and "Disable Noclip" or "Enable Noclip"
 end)
 
--- Toggle GUI Visibility with Right Shift
-UserInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.RightShift then
-        guiVisible = not guiVisible
-        frame.Visible = guiVisible
-    end
-end)
+-- Fly Functionality
+local function fly()
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.Velocity = Vector3.new(0, flySpeed * 50, 0)
+    bodyVelocity.MaxForce = Vector3.new(0, math.huge, 0)
+    bodyVelocity.Parent = localPlayer.Character.HumanoidRootPart
+
+    RunService.Stepped:Connect(function()
+        if not flyEnabled then
+            bodyVelocity:Destroy()
+        end
+    end)
+end
+
+flyButton.MouseButton1Click:Connect(function()
+    flyEnabled = not flyEnabled
+    flyButton.Text = flyEnabled and "Disable Fly" or
