@@ -12,6 +12,8 @@ local aimSmoothness = 0 -- Default to 0 for instant lock-on
 local aimbotTarget = nil
 local originalPosition = nil -- Store original position for teleporting back
 local teleportEnabled = false -- Teleport functionality variable
+local teleportInterval = 0.01 -- Teleport every 0.01 seconds
+local teleportConnection -- To hold the connection for teleporting
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
@@ -117,8 +119,11 @@ UserInputService.InputBegan:Connect(function(input)
         local closestPlayer = getClosestPlayer()
         if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("HumanoidRootPart") then
             originalPosition = localPlayer.Character.HumanoidRootPart.Position -- Store original position
-            localPlayer.Character.HumanoidRootPart.Position = closestPlayer.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0) -- Teleport above the target
-            aimbotTarget = closestPlayer -- Set the target to follow
+            teleportConnection = RunService.RenderStepped:Connect(function()
+                if teleportEnabled and closestPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    localPlayer.Character.HumanoidRootPart.Position = closestPlayer.Character.Head.Position + Vector3.new(0, 5, 0) -- Teleport above the target
+                end
+            end)
         end
     end
 end)
@@ -127,6 +132,10 @@ UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         aimbotTarget = nil
     elseif input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.X then
+        if teleportConnection then
+            teleportConnection:Disconnect() -- Stop teleporting
+            teleportConnection = nil -- Reset connection
+        end
         if originalPosition then
             localPlayer.Character.HumanoidRootPart.Position = originalPosition -- Teleport back to original position
             originalPosition = nil -- Reset original position
@@ -142,11 +151,6 @@ RunService.RenderStepped:Connect(function()
 
         local targetCFrame = CFrame.new(currentCamera.CFrame.Position, currentCamera.CFrame.Position + direction)
         currentCamera.CFrame = currentCamera.CFrame:Lerp(targetCFrame, 1 - aimSmoothness)
-
-        -- Update position while teleporting
-        if teleportEnabled then
-            localPlayer.Character.HumanoidRootPart.Position = headPosition + Vector3.new(0, 5, 0) -- Follow the target's head
-        end
     end
 end)
 
