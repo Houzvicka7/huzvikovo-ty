@@ -10,8 +10,8 @@ local highlightEnabled = false
 local noclipEnabled = false
 local aimSmoothness = 0 -- Default to 0 for instant lock-on
 local aimbotTarget = nil
-local teleportEnabled = false -- Teleport functionality variable
 local originalPosition = nil -- Store original position for teleporting back
+local teleportEnabled = false -- Teleport functionality variable
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui")
@@ -74,7 +74,7 @@ local function highlightPlayers()
         if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local highlight = player.Character:FindFirstChild("Highlight") or Instance.new("Highlight")
             highlight.Parent = player.Character
-            highlight.FillColor = Color3.new(1, 0, 0)
+            highlight.FillColor = Color3.new(0.5, 0, 0.5) -- Purple color
             highlight.Enabled = highlightEnabled
         end
     end
@@ -113,14 +113,12 @@ end
 UserInputService.InputBegan:Connect(function(input)
     if aimbotEnabled and input.UserInputType == Enum.UserInputType.MouseButton1 then
         aimbotTarget = getClosestPlayer()
-    elseif teleportEnabled and input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.F then
-        if originalPosition == nil then
-            originalPosition = localPlayer.Character.HumanoidRootPart.Position -- Store original position on first press
-        end
-
+    elseif teleportEnabled and input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.X then
         local closestPlayer = getClosestPlayer()
         if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            originalPosition = localPlayer.Character.HumanoidRootPart.Position -- Store original position
             localPlayer.Character.HumanoidRootPart.Position = closestPlayer.Character.HumanoidRootPart.Position + Vector3.new(0, 5, 0) -- Teleport above the target
+            aimbotTarget = closestPlayer -- Set the target to follow
         end
     end
 end)
@@ -128,7 +126,7 @@ end)
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         aimbotTarget = nil
-    elseif input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.F then
+    elseif input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.X then
         if originalPosition then
             localPlayer.Character.HumanoidRootPart.Position = originalPosition -- Teleport back to original position
             originalPosition = nil -- Reset original position
@@ -144,6 +142,11 @@ RunService.RenderStepped:Connect(function()
 
         local targetCFrame = CFrame.new(currentCamera.CFrame.Position, currentCamera.CFrame.Position + direction)
         currentCamera.CFrame = currentCamera.CFrame:Lerp(targetCFrame, 1 - aimSmoothness)
+
+        -- Update position while teleporting
+        if teleportEnabled then
+            localPlayer.Character.HumanoidRootPart.Position = headPosition + Vector3.new(0, 5, 0) -- Follow the target's head
+        end
     end
 end)
 
